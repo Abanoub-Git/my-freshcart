@@ -1,0 +1,47 @@
+import type { categoryType } from "@/types/types";
+import { ArrowRight } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+
+type categoryProps = {
+  category: categoryType;
+};
+
+export default function CategoryCard({ category }: categoryProps) {
+  return (
+    <Link
+      className="group bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm hover:shadow-xl hover:border-green-200 transition-all duration-300 hover:-translate-y-1"
+      href={`/categories/${category._id}`}
+    >
+      <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4">
+        <Image
+          alt={category.slug}
+          width={100}
+          height={100}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          src={category.image}
+        />
+      </div>
+      <h3 className="font-bold text-gray-900 text-center group-hover:text-green-600 transition-colors">
+        {category.name}
+      </h3>
+      <div className="flex justify-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="text-xs text-green-600 flex items-center gap-1">
+          View Subcategories
+          <svg
+            data-prefix="fas"
+            data-icon="arrow-right"
+            className="svg-inline--fa fa-arrow-right text-[10px]"
+            role="img"
+            viewBox="0 0 512 512"
+            aria-hidden="true"
+            width={12.5}
+            height={10}
+          >
+          </svg>
+          <ArrowRight className="w-3 h-3 text-green-600 -ml-4" />
+        </span>
+      </div>
+    </Link>
+  );
+}
