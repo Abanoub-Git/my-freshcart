@@ -1,8 +1,11 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { useAppDispatch } from "@/lib/redux/hooks";
+import { useState } from "react";
 import { addToWishlist } from "@/lib/redux/features/wishlist/wishlistSlice";
+
+import { toast } from "sonner";
 
 export default function AddToWishlistButton({
   productId,
@@ -11,11 +14,16 @@ export default function AddToWishlistButton({
 }) {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
-  const actionLoading = useAppSelector((state) => state.wishlist.actionLoading);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAddToWishlist = () => {
-    if (!session?.accessToken) return;
-    dispatch(addToWishlist({ accessToken: session.accessToken, productId }));
+  const handleAddToWishlist = async () => {
+    if (!session?.accessToken) {
+      toast.error("Please login first to add products to your wishlist.");
+      return;
+    }
+    setIsLoading(true);
+    await dispatch(addToWishlist({ accessToken: session.accessToken, productId }));
+    setIsLoading(false);
   };
 
   return (
@@ -23,9 +31,9 @@ export default function AddToWishlistButton({
       className="bg-white h-8 w-8 rounded-full flex items-center justify-center transition shadow-sm text-gray-600 hover:text-red-500"
       title="Add to wishlist"
       onClick={handleAddToWishlist}
-      disabled={actionLoading}
+      disabled={isLoading}
     >
-      {actionLoading ? (
+      {isLoading ? (
         <svg
           className="animate-spin"
           role="img"

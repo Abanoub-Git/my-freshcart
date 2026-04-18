@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
@@ -11,6 +11,7 @@ import {
   type WishlistItem,
 } from "@/lib/redux/features/wishlist/wishlistSlice";
 import { addToCart } from "@/lib/redux/features/cart/cartSlice";
+import { toast } from "sonner";
 
 function formatEGP(value: number) {
   return value.toLocaleString("en-US");
@@ -19,31 +20,36 @@ function formatEGP(value: number) {
 function WishlistRow({ item }: { item: WishlistItem }) {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
-  const wishlistActionLoading = useAppSelector(
-    (state) => state.wishlist.actionLoading,
-  );
-  const cartActionLoading = useAppSelector((state) => state.cart.actionLoading);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const handleRemove = async () => {
     if (!session?.accessToken) return;
 
+    setIsRemoving(true);
     await dispatch(
       removeFromWishlist({
         accessToken: session.accessToken,
         productId: item.id,
       }),
     );
+    setIsRemoving(false);
   };
 
   const handleAddToCart = async () => {
-    if (!session?.accessToken) return;
+    if (!session?.accessToken) {
+      toast.error("Please login first to add products to your cart.");
+      return;
+    }
 
+    setIsAddingToCart(true);
     await dispatch(
       addToCart({
         accessToken: session.accessToken,
         productId: item.id,
       }),
     );
+    setIsAddingToCart(false);
   };
 
   return (
@@ -108,7 +114,7 @@ function WishlistRow({ item }: { item: WishlistItem }) {
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={cartActionLoading}
+            disabled={isAddingToCart}
             className="flex h-10 w-32.25 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
@@ -123,14 +129,14 @@ function WishlistRow({ item }: { item: WishlistItem }) {
               />
             </svg>
             <span className="text-sm font-medium">
-              {cartActionLoading ? "Adding..." : "Add to Cart"}
+              {isAddingToCart ? "Adding..." : "Add to Cart"}
             </span>
           </button>
 
           <button
             type="button"
             onClick={handleRemove}
-            disabled={wishlistActionLoading}
+            disabled={isRemoving}
             className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg

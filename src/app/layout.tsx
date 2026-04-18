@@ -6,6 +6,7 @@ import Footer from "./_components/Footer/Footer";
 import Providers from "./_components/providers/providers";
 import ReduxProvider from "./_components/providers/ReduxProvider";
 import Hydrator from "./_components/hydrator/Hydrator";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "FreshCart",
@@ -33,6 +34,7 @@ export default function RootLayout({
             </main>
             <Hydrator />
             <Footer />
+            <Toaster />
           </ReduxProvider>
         </Providers>
       </body>

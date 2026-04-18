@@ -26,6 +26,7 @@ import {
   addToWishlist,
   removeFromWishlist,
 } from "@/lib/redux/features/wishlist/wishlistSlice";
+import { toast } from "sonner";
 
 type ProductDetailsProps = {
   product: ProductDetailsData;
@@ -42,9 +43,11 @@ export default function ProductDetails({
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { data: session } = useSession();
-  const { items, actionLoading } = useAppSelector((state) => state.cart);
-  const { items: wishlistItems, actionLoading: wishlistActionLoading } =
-    useAppSelector((state) => state.wishlist);
+  const { items } = useAppSelector((state) => state.cart);
+  const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
 
   const finalPrice = product.priceAfterDiscount ?? product.price;
   const totalPrice = finalPrice * itemsNumber;
@@ -71,8 +74,13 @@ export default function ProductDetails({
   };
 
   const handleAddToCart = async () => {
-    if (!session?.accessToken || isOutOfStock) return;
+    if (!session?.accessToken) {
+      toast.error("Please login first to add products to your cart.");
+      return;
+    }
+    if (isOutOfStock) return;
 
+    setIsAddingToCart(true);
     const addResult = await dispatch(
       addToCart({
         accessToken: session.accessToken,
@@ -91,11 +99,17 @@ export default function ProductDetails({
         }),
       );
     }
+    setIsAddingToCart(false);
   };
 
   const handleBuyNow = async () => {
-    if (!session?.accessToken || isOutOfStock) return;
+    if (!session?.accessToken) {
+      toast.error("Please login first to buy products.");
+      return;
+    }
+    if (isOutOfStock) return;
 
+    setIsBuyingNow(true);
     const addResult = await dispatch(
       addToCart({
         accessToken: session.accessToken,
@@ -115,12 +129,17 @@ export default function ProductDetails({
       );
     }
 
+    setIsBuyingNow(false);
     router.push("/cart");
   };
 
   const handleWishlist = async () => {
-    if (!session?.accessToken) return;
+    if (!session?.accessToken) {
+      toast.error("Please login first to add products to your wishlist.");
+      return;
+    }
 
+    setIsWishlistLoading(true);
     if (isInWishlist) {
       await dispatch(
         removeFromWishlist({
@@ -136,6 +155,7 @@ export default function ProductDetails({
         }),
       );
     }
+    setIsWishlistLoading(false);
   };
 
   const isInWishlist = wishlistItems.some((item) => item.id === product._id);
@@ -289,7 +309,7 @@ export default function ProductDetails({
                       <button
                         id="decrease-qty"
                         type="button"
-                        disabled={itemsNumber === 1 || actionLoading}
+                        disabled={itemsNumber === 1 || isAddingToCart || isBuyingNow}
                         onClick={handleDecrease}
                         className="px-4 py-3 cursor-pointer text-gray-600 hover:bg-gray-100 hover:text-green-600 transition disabled:opacity-50"
                       >
@@ -324,7 +344,7 @@ export default function ProductDetails({
                         id="increase-qty"
                         type="button"
                         disabled={
-                          itemsNumber === product?.quantity || actionLoading
+                          itemsNumber === product?.quantity || isAddingToCart || isBuyingNow
                         }
                         onClick={handleIncrease}
                         className="px-4 py-3 cursor-pointer text-gray-600 hover:bg-gray-100 hover:text-green-600 transition disabled:opacity-50"
@@ -367,7 +387,7 @@ export default function ProductDetails({
                     id="add-to-cart"
                     type="button"
                     onClick={handleAddToCart}
-                    disabled={!isLoggedIn || isOutOfStock || actionLoading}
+                    disabled={!isLoggedIn || isOutOfStock || isAddingToCart}
                     className="flex-1 cursor-pointer text-white py-3.5 px-6 rounded-xl font-medium hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-600/25 bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg
@@ -385,14 +405,14 @@ export default function ProductDetails({
                         d="M24-16C10.7-16 0-5.3 0 8S10.7 32 24 32l45.3 0c3.9 0 7.2 2.8 7.9 6.6l52.1 286.3c6.2 34.2 36 59.1 70.8 59.1L456 384c13.3 0 24-10.7 24-24s-10.7-24-24-24l-255.9 0c-11.6 0-21.5-8.3-23.6-19.7l-5.1-28.3 303.6 0c30.8 0 57.2-21.9 62.9-52.2L568.9 69.9C572.6 50.2 557.5 32 537.4 32l-412.7 0-.4-2c-4.8-26.6-28-46-55.1-46L24-16zM208 512a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm224 0a48 48 0 1 0 0-96 48 48 0 1 0 0 96z"
                       ></path>
                     </svg>
-                    {actionLoading ? "Adding..." : "Add to Cart"}
+                    {isAddingToCart ? "Adding..." : "Add to Cart"}
                   </button>
 
                   <button
                     id="buy-now"
                     type="button"
                     onClick={handleBuyNow}
-                    disabled={!isLoggedIn || isOutOfStock || actionLoading}
+                    disabled={!isLoggedIn || isOutOfStock || isBuyingNow}
                     className="flex-1 cursor-pointer bg-gray-900 text-white py-3.5 px-6 rounded-xl font-medium hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg
@@ -417,7 +437,7 @@ export default function ProductDetails({
                 <div className="flex gap-3 mb-6">
                   <button
                     onClick={handleWishlist}
-                    disabled={wishlistActionLoading}
+                    disabled={isWishlistLoading}
                     id="wishlist-button"
                     className={`flex-1 cursor-pointer border-2 py-3 px-4 rounded-xl font-medium transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                       isInWishlist
