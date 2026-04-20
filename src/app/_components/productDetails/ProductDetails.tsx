@@ -52,7 +52,7 @@ export default function ProductDetails({
   const finalPrice = product.priceAfterDiscount ?? product.price;
   const totalPrice = finalPrice * itemsNumber;
   const isOutOfStock = !product.quantity || product.quantity < 1;
-  const isLoggedIn = !!session?.accessToken;
+  const isLoggedIn = !!session;
 
   const handleDecrease = () => {
     setItemsNumber((prev) => Math.max(1, prev - 1));
@@ -74,7 +74,7 @@ export default function ProductDetails({
   };
 
   const handleAddToCart = async () => {
-    if (!session?.accessToken) {
+    if (!session) {
       toast.error("Please login first to add products to your cart.");
       return;
     }
@@ -103,7 +103,7 @@ export default function ProductDetails({
   };
 
   const handleBuyNow = async () => {
-    if (!session?.accessToken) {
+    if (!session) {
       toast.error("Please login first to buy products.");
       return;
     }
@@ -134,7 +134,7 @@ export default function ProductDetails({
   };
 
   const handleWishlist = async () => {
-    if (!session?.accessToken) {
+    if (!session) {
       toast.error("Please login first to add products to your wishlist.");
       return;
     }

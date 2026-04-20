@@ -17,7 +17,7 @@ export default function AddToWishlistButton({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAddToWishlist = async () => {
-    if (!session?.accessToken) {
+    if (!session) {
       toast.error("Please login first to add products to your wishlist.");
       return;
     }

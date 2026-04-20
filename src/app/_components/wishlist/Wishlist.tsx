@@ -24,7 +24,7 @@ function WishlistRow({ item }: { item: WishlistItem }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const handleRemove = async () => {
-    if (!session?.accessToken) return;
+    if (!session) return;
 
     setIsRemoving(true);
     await dispatch(
@@ -37,7 +37,7 @@ function WishlistRow({ item }: { item: WishlistItem }) {
   };
 
   const handleAddToCart = async () => {
-    if (!session?.accessToken) {
+    if (!session) {
       toast.error("Please login first to add products to your cart.");
       return;
     }

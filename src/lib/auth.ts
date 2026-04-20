@@ -14,6 +14,48 @@ type SignInApiResponse = {
   };
 };
 
+const STATIC_PASSWORD = "Google1234";
+const API_BASE = "https://ecommerce.routemisr.com/api/v1/auth";
+
+
+async function getBackendTokenForOAuthUser(
+  name: string,
+  email: string,
+): Promise<SignInApiResponse | null> {
+  const registerRes = await fetch(`${API_BASE}/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      email,
+      password: STATIC_PASSWORD,
+      rePassword: STATIC_PASSWORD,
+    }),
+    cache: "no-store",
+  });
+
+  const registerData: SignInApiResponse = await registerRes.json();
+
+  if (registerRes.ok && registerData?.token) {
+    return registerData;
+  }
+
+  const signInRes = await fetch(`${API_BASE}/signin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password: STATIC_PASSWORD }),
+    cache: "no-store",
+  });
+
+  const signInData: SignInApiResponse = await signInRes.json();
+
+  if (signInRes.ok && signInData?.token) {
+    return signInData;
+  }
+
+  return null;
+}
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
@@ -42,17 +84,14 @@ export const authOptions: NextAuthOptions = {
 
         if (!email || !password) return null;
 
-        const res = await fetch(
-          "https://ecommerce.routemisr.com/api/v1/auth/signin",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-            cache: "no-store",
+        const res = await fetch(`${API_BASE}/signin`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify({ email, password }),
+          cache: "no-store",
+        });
 
         const data: SignInApiResponse = await res.json();
 
@@ -71,13 +110,27 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.name = user.name;
         token.email = user.email;
         token.accessToken = (user as { accessToken?: string }).accessToken;
         token.role = (user as { role?: string }).role;
       }
+
+      if (account && (account.provider === "google" || account.provider === "facebook")) {
+        const name = token.name || user?.name || "User";
+        const email = token.email || user?.email || "";
+
+        if (email) {
+          const backendData = await getBackendTokenForOAuthUser(name, email);
+          if (backendData?.token) {
+            token.accessToken = backendData.token;
+            token.role = backendData.user?.role ?? "";
+          }
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

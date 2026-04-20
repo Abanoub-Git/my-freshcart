@@ -13,7 +13,7 @@ export default function AddToCartButton({ productId }: { productId: string }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAddToCart = async () => {
-    if (!session?.accessToken) {
+    if (!session) {
       toast.error("Please login first to add products to your cart.");
       return;
     }

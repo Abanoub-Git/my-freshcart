@@ -53,19 +53,19 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    if (status === "authenticated" && session?.accessToken) {
+    if (status === "authenticated" && session) {
       dispatch(fetchCart({ accessToken: session.accessToken }));
     }
-  }, [dispatch, session?.accessToken, status]);
+  }, [dispatch, session, status]);
 
   useEffect(() => {
     if (success && order) {
-      if (session?.accessToken) {
+      if (session) {
         dispatch(clearCart({ accessToken: session.accessToken }));
       }
       router.push("/orders");
     }
-  }, [success, order, dispatch, router, session?.accessToken]);
+  }, [success, order, dispatch, router, session]);
 
   const itemsCount = items.reduce((acc, item) => acc + item.count, 0);
   const subtotal = items.reduce(
@@ -92,7 +92,7 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!session?.accessToken) return;
+    if (!session) return;
     if (!cartId) return;
 
     const city = formData.city.trim();

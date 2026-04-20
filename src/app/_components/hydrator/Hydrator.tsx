@@ -11,7 +11,7 @@ export default function AppDataHydrator() {
   const dispatch = useAppDispatch();
   const fetchedRef = useRef(false);
   useEffect(() => {
-    if (status !== "authenticated" || !session?.accessToken) {
+    if (status !== "authenticated" || !session) {
       fetchedRef.current = false;
       return;
     }
@@ -20,6 +20,6 @@ export default function AppDataHydrator() {
     fetchedRef.current = true;
     dispatch(fetchCart({ accessToken: session.accessToken }));
     dispatch(fetchWishlist({ accessToken: session.accessToken }));
-  }, [dispatch, session?.accessToken, status]);
+  }, [dispatch, session, status]);
   return null;
 }

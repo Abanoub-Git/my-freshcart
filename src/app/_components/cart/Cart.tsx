@@ -24,7 +24,7 @@ function CartItemCard({ item }: { item: CartItem }) {
   const total = item.price * item.count;
 
   const handleDecrease = async () => {
-    if (!session?.accessToken) return;
+    if (!session) return;
 
     if (item.count <= 1) {
       await dispatch(
@@ -46,7 +46,7 @@ function CartItemCard({ item }: { item: CartItem }) {
   };
 
   const handleIncrease = async () => {
-    if (!session?.accessToken) return;
+    if (!session) return;
 
     await dispatch(
       updateCartItemQuantity({
@@ -58,7 +58,7 @@ function CartItemCard({ item }: { item: CartItem }) {
   };
 
   const handleRemove = async () => {
-    if (!session?.accessToken) return;
+    if (!session) return;
 
     await dispatch(
       removeCartItem({
@@ -295,15 +295,15 @@ export default function Cart() {
   );
 
   useEffect(() => {
-    if (status === "authenticated" && session?.accessToken) {
+    if (status === "authenticated" && session) {
       dispatch(fetchCart({ accessToken: session.accessToken }));
     }
-  }, [dispatch, session?.accessToken, status]);
+  }, [dispatch, session, status]);
 
   const itemsCount = items.reduce((acc, item) => acc + item.count, 0);
 
   const handleClearCart = async () => {
-    if (!session?.accessToken) return;
+    if (!session) return;
 
     await dispatch(clearCart({ accessToken: session.accessToken }));
   };
